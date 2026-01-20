@@ -88,13 +88,13 @@ export class UsuarioController {
 
 
     // PETICION DELETE con metodo delete(id)
-    delete = async (req, res) => {
+    disable = async (req, res) => {
         try {
             // Llamada al metodo (disable).
             await this.repository.disable(req.params.id);
-            res.json({ message: "Usuario eliminado." });
+            res.json({ message: "El usuario ha sido deshabilitado." });
         } catch (error) {
-            res.status(500).json({ error: "ERROR: No se ha podido eliminar", message: error.message });
+            res.status(500).json({ error: "ERROR: No se ha podido deshabilitar al usuario", message: error.message });
         }
     };
 }

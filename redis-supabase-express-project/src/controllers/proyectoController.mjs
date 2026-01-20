@@ -1,4 +1,5 @@
-// Importamos el repositorio Proyecto, tiene la conexion directa con Supabase
+// Importamos el repositorio Proyecto, tiene la conexion directa con Supabase.
+  // Controladores que manejan las peticiones HTTP.
 import { ProyectoRepository } from '../repositories/proyectoRepository.mjs';
 
 
@@ -52,10 +53,10 @@ export class ProyectoController {
             const nuevo = await this.repository.create(req.body);
             res.status(201).json({ 
                 data: nuevo.toJSON(), // Envio de respuesta al cliente (toJSON = convertir en objeto, JSON = enviar)
-                message: "Proyecto creado exitosamente" 
+                message: "Se ha creado el proyecto." 
             });
         } catch (error) {
-            res.status(400).json({ error: "No se pudo crear el proyecto", message: error.message });
+            res.status(400).json({ error: "ERROR: No se ha podido crear el proyecto", message: error.message });
         }
     };
 
@@ -70,7 +71,7 @@ export class ProyectoController {
             const actualizado = await this.repository.update(req.params.id, req.body);
             res.json({ 
                 data: actualizado.toJSON(),
-                message: "Proyecto actualizado correctamente" 
+                message: "Se ha actualizado el proyecto" 
             });
         } catch (error) {
             res.status(400).json({ error: "ERROR: No se ha podido actualizar", message: error.message });
@@ -83,7 +84,7 @@ export class ProyectoController {
         try {
             // Llamada al metodo (delete) del repositorio.
             await this.repository.delete(req.params.id);
-            res.json({ message: "Proyecto eliminado." });
+            res.json({ message: "Se ha eliminado el proyecto." });
         } catch (error) {
             res.status(500).json({ error: "ERROR: No se ha podido eliminar", message: error.message });
         }
