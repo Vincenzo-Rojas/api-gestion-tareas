@@ -6,6 +6,7 @@ import { Usuario } from '../models/Usuario.mjs';
 // Exportamos el repositorio para manejar las operaciones en ba base de datos:
 export class UsuarioRepository {
 
+
     // Obtenemos el usuario por ID:
     async findById(id) {
         const { data, error } = await supabase
@@ -18,6 +19,7 @@ export class UsuarioRepository {
         // Devuelvemos el objeto usuario.
         return new Usuario(data);
     }
+
 
     // Buscamos un usuario por email:
     async findByEmail(email) {
@@ -32,6 +34,7 @@ export class UsuarioRepository {
         return new Usuario(data);
     }
 
+
     // Creamos un usuario:
     async create(usuarioData) {
         const { data, error } = await supabase
@@ -45,6 +48,21 @@ export class UsuarioRepository {
         return new Usuario(data);
     }
 
+
+    // Deshabilitamos a un usuario:
+    async disable(id) {
+        const { data, error } = await supabase
+            .from('usuarios') // Tabla usuarios
+            .update({ is_active: false }) // Updateamos y deshabilitamos al usuario.
+            .eq('id', id) // Filtramos por ID.
+            .select()
+            .single();
+        if (error) throw error;
+
+        return data ? new Usuario(data) : null;
+    }
+
+    
     // Mostramos un usuario que pertenece a X proyecto:
     async findUsuariosByProyecto(proyectoId) {
         const { data, error } = await supabase

@@ -42,7 +42,7 @@ export class TareaRepository {
     }
 
 
-    // Devuelve un objeto Tarea:
+    // Actualizamos una tarea por ID:
     async update(id, updateData) {
         const { data, error } = await supabase
             .from('tareas') // Tabla tareas
