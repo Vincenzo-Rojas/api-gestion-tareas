@@ -163,3 +163,22 @@ INSERT INTO usuarios_tareas (usuario_id, tarea_id) VALUES
 (3,6),(4,7),(4,8),(5,9),(5,10),
 (6,1),(6,3),(7,2),(7,4),(8,5),
 (8,7),(9,6),(9,8),(10,9),(10,10);
+
+-- ============================================
+-- Datos de ejemplo para api_keys de usuarios existentes
+-- Se crea una api_key por cada usuario de la tabla usuarios
+-- sin borrar las que ya existan
+-- ============================================
+
+INSERT INTO api_keys (api_key, client_name, email, role)
+SELECT 
+    gen_random_uuid(),       -- Genera un UUID para la API key
+    nombre,                  -- Usamos el nombre del usuario como client_name
+    email,                   -- Email del usuario
+    'user'                   -- Rol por defecto
+FROM usuarios u
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM api_keys a
+    WHERE a.email = u.email
+);
