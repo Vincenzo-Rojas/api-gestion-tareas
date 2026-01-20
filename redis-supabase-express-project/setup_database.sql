@@ -37,31 +37,6 @@ CREATE TRIGGER update_api_keys_updated_at
 BEFORE UPDATE ON api_keys
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ============================================
--- Trigger para crear automáticamente api_key al insertar un usuario
--- ============================================
-
--- Función que genera la api_key al insertar un usuario
-CREATE OR REPLACE FUNCTION crear_api_key_usuario()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Inserta una fila en api_keys usando los datos del nuevo usuario
-    INSERT INTO api_keys (api_key, client_name, email, role)
-    VALUES (
-        gen_random_uuid(),   -- Genera un UUID para la api_key
-        NEW.nombre,          -- Usa el nombre del usuario como client_name
-        NEW.email,           -- Usa el email del usuario
-        'user'               -- Rol por defecto
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger que ejecuta la funcion despues de insertar un usuario
-CREATE TRIGGER trigger_crear_api_key
-AFTER INSERT ON usuarios
-FOR EACH ROW
-EXECUTE FUNCTION crear_api_key_usuario();
 
 -- ============================================
 -- TABLA usuarios
@@ -133,6 +108,30 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Usuarios_Tareas no necesita trigger porque solo almacena relaciones
 
+-- ============================================
+-- Trigger para crear automáticamente api_key al insertar un usuario
+-- ============================================
+-- Función que genera la api_key al insertar un usuario
+CREATE OR REPLACE FUNCTION crear_api_key_usuario()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Inserta una fila en api_keys usando los datos del nuevo usuario
+    INSERT INTO api_keys (api_key, client_name, email, role)
+    VALUES (
+        gen_random_uuid(),   -- Genera un UUID para la api_key
+        NEW.nombre,          -- Usa el nombre del usuario como client_name
+        NEW.email,           -- Usa el email del usuario
+        'user'               -- Rol por defecto
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger que ejecuta la funcion despues de insertar un usuario
+CREATE TRIGGER trigger_crear_api_key
+AFTER INSERT ON usuarios
+FOR EACH ROW
+EXECUTE FUNCTION crear_api_key_usuario();
 
 -- ============================================
 -- DATOS DE EJEMPLO
