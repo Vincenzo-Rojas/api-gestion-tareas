@@ -6,7 +6,49 @@ import { Tarea } from '../models/Tarea.mjs';
 // Exportamos el repositorio para manejar las operaciones en ba base de datos:
 export class TareaRepository {
     
-    // Obtenemos el proyecto:
+
+    //Crea una tarea:
+    async create(tareaData) {
+        // Inserta la tarea en la tabla y devuelve la fila creada
+        const { data, error } = await supabase
+            .from('tareas') // Tabla tareas
+            .insert([tareaData]) // Insertamos los datos
+            .select()
+            .single(); // Como es solo una fila, la devolvemos como objeto único
+
+        if (error) throw error;
+        // Devuelve un objeto Tarea
+        return new Tarea(data);
+    }
+
+
+  // Obtenemos todas las tareas
+    async findAll() {
+        const { data, error } = await supabase
+            .from('tareas') // Tabla tareas
+            .select('*') // Seleccionamos todos los datos.
+            .order('created_at', { ascending: true }); // Ordenanamos por creador de forma ascendente.
+
+        if (error) throw error;
+
+        return data.map(item => new Tarea(item));
+    }
+
+    // Obtenemos una tarea por su ID
+    async findById(id) {
+        const { data, error } = await supabase
+            .from('tareas') // Tabla tareas
+            .select('*') // Seleccion de todas las tablas.
+            .eq('id', id) // Por ID
+            .single(); // Al ser una sola fila la devolvemos en unico objeto.
+
+        if (error) throw error;
+      
+        return new Tarea(data);
+    }
+
+
+    // Obtenemos el proyecto por filtros:
     async findByProyecto(proyectoId, filtros = {}) {
         let query = supabase
             .from('tareas') // Tabla tareas
@@ -27,21 +69,6 @@ export class TareaRepository {
     }
 
 
-    //Crea una tarea:
-    async create(tareaData) {
-        // Inserta la tarea en la tabla y devuelve la fila creada
-        const { data, error } = await supabase
-            .from('tareas') // Tabla tareas
-            .insert([tareaData]) // Insertamos los datos
-            .select()
-            .single(); // Como es solo una fila, la devolvemos como objeto único
-
-        if (error) throw error;
-        // Devuelve un objeto Tarea
-        return new Tarea(data);
-    }
-
-
     // Actualizamos una tarea por ID:
     async update(id, updateData) {
         const { data, error } = await supabase
@@ -58,14 +85,17 @@ export class TareaRepository {
 
 
     // Elimina una tarea:
-    async delete(id) {
-        const { error } = await supabase
+    async delete(id, updateData) {
+        const { data, error } = await supabase
             .from('tareas') // Tabla tareas
+            .update(updateData)
             .delete() // Eliminamos
-            .eq('id', id); // Por ID
+            .eq('id', id) // Por ID
+            .select()
+            .single();
 
         if (error) throw error;
-        // Retornamos True si se ha eliminado.
-        return true;
+
+         return new Tarea(data);;
     }
 }
