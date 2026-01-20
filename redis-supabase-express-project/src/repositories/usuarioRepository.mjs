@@ -49,6 +49,21 @@ export class UsuarioRepository {
     }
 
 
+    // Actualizamos un usuario por ID:
+    async update(id, updateData) {
+        const { data, error } = await supabase
+            .from('usuarios') // Tabla usuarios
+            .update(updateData) // Aplicamos cambios.
+            .eq('id', id) // Filtrar por ID usuario.
+            .select()
+            .single();
+    
+        if (error) throw error;
+        // Devuelve un objeto Tarea
+        return new Usuario(data);
+    }
+
+
     // Deshabilitamos a un usuario:
     async disable(id) {
         const { data, error } = await supabase
@@ -62,17 +77,6 @@ export class UsuarioRepository {
         return data ? new Usuario(data) : null;
     }
 
-    
-    // Mostramos un usuario que pertenece a X proyecto:
-    async findUsuariosByProyecto(proyectoId) {
-        const { data, error } = await supabase
-            .from('usuarios_proyectos') // Tabla que relaciona a los usuarios con los proyectos
-            // Realizamos un JOIN con la tabla usuarios, asi obtenemos los datos completos, no solo la ID.
-            .select(`usuarios:usuario_id (*)`)
-            .eq('proyecto_id', proyectoId); // Filtramos por la ID del proyecto.
 
-        if (error) throw error;
-        // Devolvemos el array objetos.
-        return data.map(item => new Usuario(item.usuarios));
-    }
+
 }
