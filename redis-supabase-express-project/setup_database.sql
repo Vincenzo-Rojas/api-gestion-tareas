@@ -37,6 +37,31 @@ CREATE TRIGGER update_api_keys_updated_at
 BEFORE UPDATE ON api_keys
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- ============================================
+-- Trigger para crear automáticamente api_key al insertar un usuario
+-- ============================================
+
+-- Función que genera la api_key al insertar un usuario
+CREATE OR REPLACE FUNCTION crear_api_key_usuario()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Inserta una fila en api_keys usando los datos del nuevo usuario
+    INSERT INTO api_keys (api_key, client_name, email, role)
+    VALUES (
+        gen_random_uuid(),   -- Genera un UUID para la api_key
+        NEW.nombre,          -- Usa el nombre del usuario como client_name
+        NEW.email,           -- Usa el email del usuario
+        'user'               -- Rol por defecto
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger que ejecuta la funcion despues de insertar un usuario
+CREATE TRIGGER trigger_crear_api_key
+AFTER INSERT ON usuarios
+FOR EACH ROW
+EXECUTE FUNCTION crear_api_key_usuario();
 
 -- ============================================
 -- TABLA usuarios
@@ -130,32 +155,6 @@ VALUES (
    'user'
 );
 
--- ============================================
--- Trigger para crear automáticamente api_key al insertar un usuario
--- ============================================
-
--- Función que genera la api_key al insertar un usuario
-CREATE OR REPLACE FUNCTION crear_api_key_usuario()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Inserta una fila en api_keys usando los datos del nuevo usuario
-    INSERT INTO api_keys (api_key, client_name, email, role)
-    VALUES (
-        gen_random_uuid(),   -- Genera un UUID para la api_key
-        NEW.nombre,          -- Usa el nombre del usuario como client_name
-        NEW.email,           -- Usa el email del usuario
-        'user'               -- Rol por defecto
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger que ejecuta la funcion despues de insertar un usuario
-CREATE TRIGGER trigger_crear_api_key
-AFTER INSERT ON usuarios
-FOR EACH ROW
-EXECUTE FUNCTION crear_api_key_usuario();
-
 
 -- Insertar usuarios de ejemplo
 INSERT INTO usuarios (nombre, email, password) VALUES
@@ -203,19 +202,3 @@ INSERT INTO usuarios_tareas (usuario_id, tarea_id) VALUES
 (6,1),(6,3),(7,2),(7,4),(8,5),
 (8,7),(9,6),(9,8),(10,9),(10,10);
 
--- ============================================
--- Generar api_keys para usuarios existentes
--- ============================================
--- Para cada usuario que no tenga ya una api_key se genera una nueva
-INSERT INTO api_keys (api_key, client_name, email, role)
-SELECT 
-    gen_random_uuid(), -- UUID aleatorio
-    nombre,            -- Nombre del usuario
-    email,             -- Email del usuario
-    'user'             -- Rol por defecto
-FROM usuarios u
-WHERE NOT EXISTS (
-    SELECT 1 
-    FROM api_keys a
-    WHERE a.email = u.email
-);
