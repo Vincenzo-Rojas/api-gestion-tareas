@@ -57,7 +57,7 @@ export class ApiKeyController {
       });
     } catch (error) {
       console.error('Error en getAllKeys:', error);
-      res.status(500).json({ error: 'Error al obtener las API Keys' });
+      res.status(500).json({ error: 'ERROR: No se ha podido obtener las API Keys' });
     }
   };
 
