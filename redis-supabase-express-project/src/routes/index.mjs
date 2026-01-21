@@ -1,16 +1,36 @@
+// Monta todas las rutas de la aplicacion
+
 import express from 'express';
 import apiKeyRoutes from './apiKeyRoutes.mjs';
+import proyectoRoutes from './proyectoRoutes.mjs';
+import usuarioRoutes from './usuarioRoutes.mjs';
+import estadisticasRoutes from './estadisticasRoutes.mjs'; // NUEVA RUTA AGREGADA
 
 const router = express.Router();
 
-// Montar las rutas de API Keys
+// ============================================
+// MONTAR RUTAS
+// ============================================
+
+// Rutas de autenticacion y API Keys
 router.use('/', apiKeyRoutes);
 
-// Ruta raíz con información de la API
+// Rutas de entidades de negocio
+router.use('/proyectos', proyectoRoutes);
+router.use('/usuarios', usuarioRoutes);
+
+// Rutas de estadisticas (NUEVO - Parte de Diego)
+router.use('/estadisticas', estadisticasRoutes);
+
+// ============================================
+// RUTA RAIZ - Informacion de la API
+// ============================================
+
 router.get('/', (req, res) => {
   res.json({
-    name: 'API con autenticación por API Key',
+    name: 'API de Gestion de Tareas y Proyectos',
     version: '1.0.0',
+    description: 'API REST con autenticacion por API Key, cache con Redis y base de datos PostgreSQL',
     endpoints: {
       public: [
         'POST /api/register - Registrar y obtener nueva API Key'
@@ -18,6 +38,27 @@ router.get('/', (req, res) => {
       protected: [
         'GET /api/protected/data - Datos protegidos (requiere API Key)',
         'GET /api/protected/me - Info del cliente (requiere API Key)'
+      ],
+      proyectos: [
+        'GET /api/proyectos - Listar todos los proyectos',
+        'GET /api/proyectos/:id - Obtener proyecto por ID',
+        'POST /api/proyectos - Crear nuevo proyecto (admin)',
+        'PUT /api/proyectos/:id - Actualizar proyecto (admin)',
+        'DELETE /api/proyectos/:id - Eliminar proyecto (admin)'
+      ],
+      usuarios: [
+        'GET /api/usuarios/:id - Obtener usuario por ID',
+        'GET /api/usuarios/email/:email - Obtener usuario por email',
+        'POST /api/usuarios - Crear nuevo usuario (admin)',
+        'PUT /api/usuarios/:id - Actualizar usuario (admin)',
+        'DELETE /api/usuarios/:id - Deshabilitar usuario (admin)'
+      ],
+      estadisticas: [
+        'GET /api/estadisticas/tareas-por-estado - Tareas agrupadas por estado (con cache)',
+        'GET /api/estadisticas/proyectos-top?limite=5 - Top proyectos con mas tareas (con cache)',
+        'GET /api/estadisticas/generales - Estadisticas generales del sistema (con cache)',
+        'GET /api/estadisticas/proyecto/:id/tareas - Tareas de un proyecto por estado (con cache)',
+        'DELETE /api/estadisticas/cache - Invalidar cache de estadisticas (admin)'
       ],
       admin: [
         'GET /api/admin/keys - Listar todas las API Keys',
@@ -28,7 +69,14 @@ router.get('/', (req, res) => {
     usage: {
       header: 'X-API-Key',
       example: 'X-API-Key: tu-uuid-aqui'
-    }
+    },
+    features: [
+      'Autenticacion con API Keys',
+      'Rate limiting (10 req/min por API Key)',
+      'Cache con Redis (TTL: 5-10 minutos)',
+      'Consultas avanzadas con agregaciones',
+      'Arquitectura en capas (routes -> controllers -> services -> repositories)'
+    ]
   });
 });
 
