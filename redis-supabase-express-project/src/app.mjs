@@ -51,6 +51,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+
 // ============================================
 // INICIAR SERVIDOR
 // ============================================
@@ -58,16 +59,80 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\nServidor corriendo en http://localhost:${PORT}`);
   console.log(`\nEndpoints disponibles:`);
+
+  // =========================
+  // RUTAS PUBLICAS
+  // =========================
+  console.log(`\nPublicos:`);
   console.log(`   POST http://localhost:${PORT}/api/register`);
-  console.log(`   GET  http://localhost:${PORT}/api/protected/data`);
-  console.log(`   GET  http://localhost:${PORT}/api/protected/me`);
-  console.log(`   GET  http://localhost:${PORT}/api/admin/keys`);
+  console.log(`   curl -X POST http://localhost:${PORT}/api/register -H "Content-Type: application/json" -d "{\\"nombre\\":\\"Juan\\",\\"email\\":\\"juan@example.com\\"}"`);
+  console.log(`   -> Crea un usuario normal y genera automaticamente su API Key`);
 
-  console.log(`\nPara registrar un nuevo cliente (CMD/PowerShell):`);
-  console.log(`   curl -X POST http://localhost:${PORT}/api/register -H "Content-Type: application/json" -d "{\"client_name\":\"Mi App\",\"email\":\"app@example.com\"}"`);
+  // =========================
+  // RUTAS PROTEGIDAS
+  // =========================
+  console.log(`\nProtegidos (requieren API Key):`);
+  console.log(`   GET http://localhost:${PORT}/api/protected/data`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/protected/data -H "X-API-Key: tu-api-key-aqui"`);
+  console.log(`   GET http://localhost:${PORT}/api/protected/me`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/protected/me -H "X-API-Key: tu-api-key-aqui"`);
 
-  console.log(`\nPara consultar info del cliente (requiere API Key):`);
-  console.log(`   curl -X GET http://localhost:${PORT}/api/protected/me -H "X-API-Key: tu-uuid-aqui"`);
+  // =========================
+  // PROYECTOS
+  // =========================
+  console.log(`\nProyectos:`);
+  console.log(`   GET http://localhost:${PORT}/api/proyectos`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/proyectos -H "X-API-Key: tu-api-key-aqui"`);
+  console.log(`   GET http://localhost:${PORT}/api/proyectos/:id`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/proyectos/1 -H "X-API-Key: tu-api-key-aqui"`);
+  console.log(`   POST http://localhost:${PORT}/api/proyectos (admin)`);
+  console.log(`   curl -X POST http://localhost:${PORT}/api/proyectos -H "X-API-Key: admin-api-key" -H "Content-Type: application/json" -d "{\\"nombre\\":\\"Nuevo Proyecto\\",\\"descripcion\\":\\"Descripcion\\"}"`);
+  console.log(`   PUT http://localhost:${PORT}/api/proyectos/:id (admin)`);
+  console.log(`   DELETE http://localhost:${PORT}/api/proyectos/:id (admin)`);
+
+  // =========================
+  // TAREAS
+  // =========================
+  console.log(`\nTareas:`);
+  console.log(`   GET http://localhost:${PORT}/api/tareas`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/tareas -H "X-API-Key: tu-api-key-aqui"`);
+  console.log(`   GET http://localhost:${PORT}/api/tareas/:id`);
+  console.log(`   GET http://localhost:${PORT}/api/tareas/proyecto/:proyectoId`);
+  console.log(`   POST http://localhost:${PORT}/api/tareas (admin)`);
+  console.log(`   PUT http://localhost:${PORT}/api/tareas/:id (admin)`);
+  console.log(`   DELETE http://localhost:${PORT}/api/tareas/:id (admin)`);
+
+  // =========================
+  // USUARIOS
+  // =========================
+  console.log(`\nUsuarios:`);
+  console.log(`   GET http://localhost:${PORT}/api/usuarios/:id`);
+  console.log(`   GET http://localhost:${PORT}/api/usuarios/email/:email`);
+  console.log(`   POST http://localhost:${PORT}/api/usuarios (admin)`);
+  console.log(`   PUT http://localhost:${PORT}/api/usuarios/:id (admin)`);
+  console.log(`   DELETE http://localhost:${PORT}/api/usuarios/:id (admin)`);
+
+  // =========================
+  // ESTADISTICAS
+  // =========================
+  console.log(`\nEstadisticas:`);
+  console.log(`   GET http://localhost:${PORT}/api/estadisticas/tareas-por-estado`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/estadisticas/tareas-por-estado -H "X-API-Key: tu-api-key-aqui"`);
+  console.log(`   GET http://localhost:${PORT}/api/estadisticas/proyectos-top?limite=5`);
+  console.log(`   GET http://localhost:${PORT}/api/estadisticas/generales`);
+  console.log(`   GET http://localhost:${PORT}/api/estadisticas/proyecto/:id/tareas`);
+  console.log(`   DELETE http://localhost:${PORT}/api/estadisticas/cache (admin)`);
+
+  // =========================
+  // ADMIN
+  // =========================
+  console.log(`\nAdmin:`);
+  console.log(`   GET http://localhost:${PORT}/api/admin/keys`);
+  console.log(`   PUT http://localhost:${PORT}/api/admin/keys/:apiKey/deactivate`);
+  console.log(`   PUT http://localhost:${PORT}/api/admin/keys/:apiKey/activate`);
+
+  console.log(`\nAutenticacion:`);
+  console.log(`   Header requerido: X-API-Key`);
 });
 
 
