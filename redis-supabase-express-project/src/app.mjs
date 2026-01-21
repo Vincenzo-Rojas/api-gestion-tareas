@@ -56,16 +56,19 @@ app.use((err, req, res, next) => {
 // ============================================
 
 app.listen(PORT, () => {
-  console.log(`\n Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`\n Endpoints disponibles:`);
+  console.log(`\nServidor corriendo en http://localhost:${PORT}`);
+  console.log(`\nEndpoints disponibles:`);
   console.log(`   POST http://localhost:${PORT}/api/register`);
   console.log(`   GET  http://localhost:${PORT}/api/protected/data`);
   console.log(`   GET  http://localhost:${PORT}/api/protected/me`);
   console.log(`   GET  http://localhost:${PORT}/api/admin/keys`);
-  console.log(`\n Para registrar un nuevo cliente:`);
-  console.log(`   curl -X POST http://localhost:${PORT}/api/register \\`);
-  console.log(`        -H "Content-Type: application/json" \\`);
-  console.log(`        -d '{"client_name":"Mi App","email":"app@example.com"}'`);
+
+  console.log(`\nPara registrar un nuevo cliente (CMD/PowerShell):`);
+  console.log(`   curl -X POST http://localhost:${PORT}/api/register -H "Content-Type: application/json" -d "{\"client_name\":\"Mi App\",\"email\":\"app@example.com\"}"`);
+
+  console.log(`\nPara consultar info del cliente (requiere API Key):`);
+  console.log(`   curl -X GET http://localhost:${PORT}/api/protected/me -H "X-API-Key: tu-uuid-aqui"`);
 });
+
 
 export default app;

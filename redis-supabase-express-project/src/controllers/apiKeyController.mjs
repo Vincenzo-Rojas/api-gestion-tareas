@@ -8,40 +8,6 @@ export class ApiKeyController {
     this.service = new ApiKeyService();
   }
 
-  /**
-   * POST /api/register
-   * Registra un nuevo cliente y genera una API Key
-   */
-  register = async (req, res) => {
-    try {
-      const { client_name, email, role } = req.body;
-
-      // Solo permitir crear admins si el que lo solicita es admin
-      if (role === 'admin') {
-        if (!req.client || req.client.role !== 'admin') {
-          return res.status(403).json({
-            error: 'Solo un administrador puede crear otros administradores'
-          });
-        }
-      }
-
-      const apiKey = await this.service.registerClient(client_name, email, role);
-
-      res.status(201).json({
-        message: 'API Key generada exitosamente',
-        api_key: apiKey.api_key,
-        client_name: apiKey.client_name,
-        email: apiKey.email,
-        role: apiKey.role,
-        info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
-      });
-    } catch (error) {
-      console.error('Error en register:', error);
-      res.status(400).json({ 
-        error: error.message || 'Error al crear API Key'
-      });
-    }
-  };
 
   /**
    * GET /api/admin/keys

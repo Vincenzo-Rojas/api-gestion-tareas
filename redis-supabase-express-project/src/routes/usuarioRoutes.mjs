@@ -40,4 +40,14 @@ router.put('/:id', adminMiddleware, controller.update);
 // Usamos el metodo disable() internamente en el controlador.
 router.delete('/:id', adminMiddleware, controller.disable);
 
+// ============================================
+// RUTAS PÚBLICAS
+// ============================================
+
+/**
+ * POST /api/register
+ * Registra un nuevo cliente y genera una API Key
+ */
+router.post('/register', controller.register);
+
 export default router;
