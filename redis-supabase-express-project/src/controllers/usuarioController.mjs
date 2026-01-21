@@ -9,6 +9,49 @@ export class UsuarioController {
         this.repository = new UsuarioRepository();
     }
 
+     /**
+     * POST /api/register
+     * Registra un nuevo usuario normal.
+     * La API Key se genera automáticamente mediante el trigger de la base de datos.
+     */
+    register = async (req, res) => {
+        try {
+            const { client_name, email } = req.body;
+
+            // Validación mínima
+            if (!client_name || !email) {
+                return res.status(400).json({
+                    error: 'Faltan campos obligatorios: client_name y email'
+                });
+            }
+
+            // Creamos el usuario con rol 'user' (normal)
+            const nuevoUsuario = await this.repository.create({
+                client_name,
+                email,
+                role: 'user' // forzamos rol normal
+            });
+
+            // Devolvemos info, incluyendo la API Key generada por el trigger
+            res.status(201).json({
+                message: 'Usuario registrado exitosamente. La API Key se genera automáticamente.',
+                data: {
+                    client_name: nuevoUsuario.client_name,
+                    email: nuevoUsuario.email,
+                    role: nuevoUsuario.role,
+                    api_key: nuevoUsuario.api_key, // viene del trigger
+                    created_at: nuevoUsuario.created_at
+                },
+                info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
+            });
+        } catch (error) {
+            console.error('Error en register:', error);
+            res.status(400).json({
+                error: error.message || 'Error al registrar usuario'
+            });
+        }
+    };
+
     // PETICION GET con metodo usuarioRepository.findById()
     getById = async (req, res) => {
          try {
