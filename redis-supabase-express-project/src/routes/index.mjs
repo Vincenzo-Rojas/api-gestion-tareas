@@ -4,8 +4,8 @@ import express from 'express';
 import apiKeyRoutes from './apiKeyRoutes.mjs';
 import proyectoRoutes from './proyectoRoutes.mjs';
 import usuarioRoutes from './usuarioRoutes.mjs';
-import estadisticasRoutes from './estadisticasRoutes.mjs'; // NUEVA RUTA AGREGADA
-import tareaRoutes from './tareaRoutes.mjs';
+import estadisticasRoutes from './estadisticasRoutes.mjs';
+import tareaRoutes from './tareasRoutes.mjs';
 
 const router = express.Router();
 
