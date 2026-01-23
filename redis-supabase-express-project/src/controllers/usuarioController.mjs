@@ -130,6 +130,26 @@ export class UsuarioController {
     };
 
 
+    // PETICION GET con metodo usuarioRepository.getAll()
+    getAll = async (req, res) => {
+        try {
+            // Llamamos al metodo getAll del repositorio
+            const usuarios = await this.repository.getAll();
+
+            // Respondemos con la lista de usuarios transformados a JSON
+            res.json({
+                total: usuarios.length,
+                data: usuarios.map(usuario => usuario.toJSON())
+            });
+        } catch (error) {
+            res.status(500).json({
+                error: 'ERROR: No se han podido obtener los usuarios',
+                message: error.message
+            });
+        }
+    };
+
+
     // PETICION DELETE con metodo delete(id)
     disable = async (req, res) => {
         try {
