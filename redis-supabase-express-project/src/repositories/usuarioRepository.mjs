@@ -64,19 +64,17 @@ export class UsuarioRepository {
     }
 
 
-    // Deshabilitamos a un usuario:
+    // Eliminamos un usuario:
     async disable(id) {
         const { data, error } = await supabase
             .from('usuarios') // Tabla usuarios
-            .update({ is_active: false }) // Updateamos y deshabilitamos al usuario.
+            .delete() // ELIMINAMOS el registro
             .eq('id', id) // Filtramos por ID.
             .select()
             .single();
+            
         if (error) throw error;
 
         return data ? new Usuario(data) : null;
     }
-
-
-
 }

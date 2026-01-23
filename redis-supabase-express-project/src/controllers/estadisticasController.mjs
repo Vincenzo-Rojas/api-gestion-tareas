@@ -29,7 +29,7 @@ export class EstadisticasController {
   async _getFromCache(key) {
     try {
       const cached = await redis.get(key);
-      
+
       if (!cached) {
         console.log(`[CACHE MISS] No se encontro: ${key}`);
         return null;
@@ -51,17 +51,44 @@ export class EstadisticasController {
    */
   async _saveToCache(key, data, ttl = 300) {
     try {
-      await redis.setex(key, ttl, JSON.stringify(data));
-      console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s)`);
+      // DEBUG: Verificar qué métodos tiene redis
+      console.log(`[DEBUG] Métodos disponibles en redis:`, {
+        setEx: typeof redis.setEx === 'function',
+        setex: typeof redis.setex === 'function',
+        set: typeof redis.set === 'function'
+      });
+
+      const jsonData = JSON.stringify(data);
+
+      // Opción 1: Intentar con setEx (E mayúscula - versión nueva)
+      if (typeof redis.setEx === 'function') {
+        await redis.setEx(key, ttl, jsonData);
+        console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando setEx`);
+        return;
+      }
+
+      // Opción 2: Intentar con setex (x minúscula - versión antigua)
+      if (typeof redis.setex === 'function') {
+        await redis.setex(key, ttl, jsonData);
+        console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando setex`);
+        return;
+      }
+
+      // Opción 3: Usar set + expire por separado
+      if (typeof redis.set === 'function' && typeof redis.expire === 'function') {
+        await redis.set(key, jsonData);
+        await redis.expire(key, ttl);
+        console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando set+expire`);
+        return;
+      }
+
+      // Si nada funciona
+      console.error(`[CACHE ERROR] No se pudo guardar en cache: ${key}`);
+
     } catch (error) {
-      console.error('[CACHE ERROR] Error al guardar en cache:', error);
+      console.error('[CACHE ERROR] Error al guardar en cache:', error.message);
     }
   }
-
-  /**
-   * Eliminar una clave especifica del cache
-   * @param {string} key - Clave a eliminar
-   */
   async _deleteFromCache(key) {
     try {
       await redis.del(key);
@@ -72,24 +99,34 @@ export class EstadisticasController {
   }
 
   /**
-   * Eliminar todas las claves que coincidan con un patron
-   * @param {string} pattern - Patron de busqueda (ej: "estadisticas:*")
-   */
+  * Eliminar todas las claves que coincidan con un patron
+  * @param {string} pattern - Patron de busqueda (ej: "estadisticas:*")
+  */
   async _deleteCachePattern(pattern) {
     try {
+      console.log(`[CACHE DELETE] Buscando claves con patron: ${pattern}`);
+
       const keys = await redis.keys(pattern);
-      
+
+      console.log(`[CACHE DELETE] Claves encontradas:`, keys);
+      console.log(`[CACHE DELETE] Total de claves: ${keys.length}`);
+
       if (keys.length > 0) {
-        await redis.del(...keys);
-        console.log(`[CACHE DELETE] Eliminadas ${keys.length} claves con patron: ${pattern}`);
+        // Eliminar una por una para mejor debugging
+        for (const key of keys) {
+          await redis.del(key);
+          console.log(`[CACHE DELETE] Eliminada clave: ${key}`);
+        }
+
+        console.log(`[CACHE DELETE] ✅ Eliminadas ${keys.length} claves con patron: ${pattern}`);
       } else {
-        console.log(`[CACHE DELETE] No se encontraron claves con patron: ${pattern}`);
+        console.log(`[CACHE DELETE] ⚠️ No se encontraron claves con patron: ${pattern}`);
       }
     } catch (error) {
-      console.error('[CACHE ERROR] Error al eliminar patron del cache:', error);
+      console.error('[CACHE ERROR] ❌ Error al eliminar patron del cache:', error);
+      throw error; // Re-lanzar el error para que el controlador lo maneje
     }
   }
-
   /**
    * Generar clave de cache estandarizada
    * @param {string} tipo - Tipo de dato
@@ -366,7 +403,7 @@ export class EstadisticasController {
       for (const key of keys) {
         const ttl = await this._getCacheTTL(key);
         const existe = await this._cacheExists(key);
-        
+
         estadoCache.push({
           key,
           existe,
@@ -396,7 +433,7 @@ export class EstadisticasController {
   invalidarClaveCache = async (req, res) => {
     try {
       const { key } = req.params;
-      
+
       if (!key || !key.startsWith('estadisticas:')) {
         return res.status(400).json({
           error: 'Clave invalida',
@@ -405,7 +442,7 @@ export class EstadisticasController {
       }
 
       const existe = await this._cacheExists(key);
-      
+
       if (!existe) {
         return res.status(404).json({
           error: 'Clave no encontrada',
