@@ -1,15 +1,9 @@
-import express from 'express'; // Express para poder crear rutas.
-import { UsuarioController } from '../controllers/usuarioController.mjs';
-
-// Middleware para verificar la API Key
+import express from 'express';
+import { UsuarioController } from '../controllers/UsuarioController.mjs';
 import { apiKeyMiddleware } from '../middlewares/apiKeyMiddleware.mjs';
-// Aseguramos que solo usuarios con rol 'admin' puedan realizar acciones criticas.
 import { adminMiddleware } from '../middlewares/adminMiddleware.mjs';
 
-// Router permite agrupar rutas relacionadas y exportarlas como un modulo.
 const router = express.Router();
-
-// Creamos una instancia del controlador de Usuario
 const controller = new UsuarioController();
 
 // ============================================
@@ -18,7 +12,7 @@ const controller = new UsuarioController();
 
 /**
  * POST /api/usuarios/register
- * Registra un nuevo cliente y genera una API Key
+ * Registra un nuevo cliente y genera una API Key automáticamente
  */
 router.post('/register', controller.register);
 
@@ -26,27 +20,29 @@ router.post('/register', controller.register);
 // RUTAS PROTEGIDAS (requieren API Key)
 // ============================================
 
-// Obtener todos los usuarios (GET /api/usuarios)
+// Obtener todos los usuarios
 router.get('/', apiKeyMiddleware, controller.getAll);
 
-// Obtener un usuario por email (GET /api/usuarios/email/:email)
+// Obtener un usuario por email
 router.get('/email/:email', apiKeyMiddleware, controller.getByEmail);
 
-// Obtener un usuario por ID (GET /api/usuarios/:id)
+// Obtener un usuario por ID
 router.get('/:id', apiKeyMiddleware, controller.getById);
+
+// Obtener tareas asignadas a un usuario
+router.get('/:id/tareas', apiKeyMiddleware, controller.getTareasUsuario);
 
 // ============================================
 // RUTAS ADMINISTRATIVAS (requieren rol admin)
 // ============================================
 
-// Crear un nuevo usuario (POST /api/usuarios)
+// Crear un nuevo usuario
 router.post('/', adminMiddleware, controller.create);
 
-// Actualizar un usuario por ID (PUT /api/usuarios/:id)
+// Actualizar un usuario por ID
 router.put('/:id', adminMiddleware, controller.update);
 
-// Deshabilitar un usuario por ID (DELETE /api/usuarios/:id)
+// Deshabilitar un usuario por ID
 router.delete('/:id', adminMiddleware, controller.disable);
-
 
 export default router;
