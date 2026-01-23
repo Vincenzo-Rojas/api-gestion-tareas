@@ -99,24 +99,34 @@ export class EstadisticasController {
   }
 
   /**
-   * Eliminar todas las claves que coincidan con un patron
-   * @param {string} pattern - Patron de busqueda (ej: "estadisticas:*")
-   */
+  * Eliminar todas las claves que coincidan con un patron
+  * @param {string} pattern - Patron de busqueda (ej: "estadisticas:*")
+  */
   async _deleteCachePattern(pattern) {
     try {
+      console.log(`[CACHE DELETE] Buscando claves con patron: ${pattern}`);
+
       const keys = await redis.keys(pattern);
 
+      console.log(`[CACHE DELETE] Claves encontradas:`, keys);
+      console.log(`[CACHE DELETE] Total de claves: ${keys.length}`);
+
       if (keys.length > 0) {
-        await redis.del(...keys);
-        console.log(`[CACHE DELETE] Eliminadas ${keys.length} claves con patron: ${pattern}`);
+        // Eliminar una por una para mejor debugging
+        for (const key of keys) {
+          await redis.del(key);
+          console.log(`[CACHE DELETE] Eliminada clave: ${key}`);
+        }
+
+        console.log(`[CACHE DELETE] ✅ Eliminadas ${keys.length} claves con patron: ${pattern}`);
       } else {
-        console.log(`[CACHE DELETE] No se encontraron claves con patron: ${pattern}`);
+        console.log(`[CACHE DELETE] ⚠️ No se encontraron claves con patron: ${pattern}`);
       }
     } catch (error) {
-      console.error('[CACHE ERROR] Error al eliminar patron del cache:', error);
+      console.error('[CACHE ERROR] ❌ Error al eliminar patron del cache:', error);
+      throw error; // Re-lanzar el error para que el controlador lo maneje
     }
   }
-
   /**
    * Generar clave de cache estandarizada
    * @param {string} tipo - Tipo de dato

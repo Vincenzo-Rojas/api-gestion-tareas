@@ -57,19 +57,22 @@ export class EstadisticasRepository {
         nombre,
         descripcion,
         tareas:tareas(count)
-      `)
-      .order('tareas.count', { ascending: false })
-      .limit(limite);
+      `);
 
     if (error) throw error;
 
-    // Transformar respuesta para formato mas legible
-    return data.map(proyecto => ({
+    // Transformar y ordenar en JavaScript
+    const proyectosConConteo = data.map(proyecto => ({
       proyecto_id: proyecto.id,
       nombre: proyecto.nombre,
       descripcion: proyecto.descripcion,
       total_tareas: proyecto.tareas[0]?.count || 0
     }));
+
+    // Ordenar por total_tareas descendente y aplicar limite
+    return proyectosConConteo
+      .sort((a, b) => b.total_tareas - a.total_tareas)
+      .slice(0, limite);
   }
 
   /**
