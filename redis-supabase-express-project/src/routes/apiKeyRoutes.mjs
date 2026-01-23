@@ -6,15 +6,6 @@ import { adminMiddleware } from '../middlewares/adminMiddleware.mjs';
 const router = express.Router();
 const controller = new ApiKeyController();
 
-// ============================================
-// RUTAS PÚBLICAS
-// ============================================
-
-/**
- * POST /api/register
- * Registra un nuevo cliente y genera una API Key
- */
-router.post('/register', controller.register);
 
 // ============================================
 // RUTAS PROTEGIDAS (requieren API Key)

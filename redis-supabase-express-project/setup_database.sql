@@ -1,83 +1,96 @@
--- Script SQL para crear la tabla api_keys en Supabase
--- Ejecuta este script en el SQL Editor de tu proyecto Supabase
-
--- Tabla api_keys (existente, opcional)
+-- ============================================
+-- TABLA api_keys
+-- ============================================
+-- Creamos la tabla api_keys si no existe
+-- Esta tabla guarda las claves de API de cada cliente/usuario
 CREATE TABLE IF NOT EXISTS api_keys (
-  id SERIAL PRIMARY KEY,
-  api_key UUID UNIQUE NOT NULL,
-  client_name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  id SERIAL PRIMARY KEY,             -- Identificador único auto-incremental
+  api_key UUID UNIQUE NOT NULL,      -- Clave de API única
+  client_name VARCHAR(255) NOT NULL, -- Nombre del cliente/usuario
+  email VARCHAR(255) NOT NULL,       -- Email del cliente/usuario
+  role VARCHAR(50) DEFAULT 'user'    -- Rol del usuario ('user' o 'admin')
+       CHECK (role IN ('user', 'admin')),
+  is_active BOOLEAN DEFAULT true,    -- Estado activo/inactivo de la clave
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Fecha de creación
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()  -- Fecha de última actualización
 );
 
+-- Índices para optimizar consultas
 CREATE INDEX IF NOT EXISTS idx_api_keys_api_key ON api_keys(api_key);
 CREATE INDEX IF NOT EXISTS idx_api_keys_is_active ON api_keys(is_active);
 CREATE INDEX IF NOT EXISTS idx_api_keys_role ON api_keys(role);
 
--- Trigger para actualizar updated_at automáticamente
+-- ============================================
+-- TRIGGER PARA ACTUALIZAR updated_at
+-- ============================================
+-- Creamos función para actualizar updated_at automáticamente al modificar filas
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at = NOW(); -- Asigna la fecha y hora actual
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Creamos trigger para la tabla api_keys
 CREATE TRIGGER update_api_keys_updated_at 
 BEFORE UPDATE ON api_keys
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 
 -- ============================================
--- TABLAS DEL PROYECTO
+-- TABLA usuarios
 -- ============================================
-
--- Tabla Usuarios
+-- Tabla de usuarios del sistema
 CREATE TABLE IF NOT EXISTS usuarios (
-  id SERIAL PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  id SERIAL PRIMARY KEY,            -- Identificador único del usuario
+  nombre VARCHAR(100) NOT NULL,    -- Nombre del usuario
+  email VARCHAR(255) NOT NULL UNIQUE, -- Email único
+  password VARCHAR(255) NOT NULL,  -- Contraseña del usuario
+  created_at TIMESTAMP DEFAULT NOW(), -- Fecha de creación
+  updated_at TIMESTAMP DEFAULT NOW()  -- Fecha de última actualización
 );
 
--- Tabla Proyectos
+-- ============================================
+-- TABLA proyectos
+-- ============================================
+-- Tabla de proyectos
 CREATE TABLE IF NOT EXISTS proyectos (
-  id SERIAL PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  descripcion TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  id SERIAL PRIMARY KEY,           -- Identificador único del proyecto
+  nombre VARCHAR(100) NOT NULL,   -- Nombre del proyecto
+  descripcion TEXT,               -- Descripción opcional
+  created_at TIMESTAMP DEFAULT NOW(), -- Fecha de creación
+  updated_at TIMESTAMP DEFAULT NOW()  -- Fecha de última actualización
 );
 
--- Tabla Tareas
+-- ============================================
+-- TABLA tareas
+-- ============================================
+-- Tabla de tareas asociadas a proyectos
 CREATE TABLE IF NOT EXISTS tareas (
-  id SERIAL PRIMARY KEY,
-  titulo VARCHAR(255) NOT NULL,
-  descripcion TEXT,
-  estado VARCHAR(50) DEFAULT 'pendiente' 
+  id SERIAL PRIMARY KEY,                     -- Identificador único de la tarea
+  titulo VARCHAR(255) NOT NULL,             -- Título de la tarea
+  descripcion TEXT,                         -- Descripción opcional
+  estado VARCHAR(50) DEFAULT 'pendiente'   -- Estado de la tarea
          CHECK (estado IN ('pendiente', 'en progreso', 'completada', 'cancelada')),
-  proyecto_id INTEGER REFERENCES proyectos(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  proyecto_id INTEGER REFERENCES proyectos(id) ON DELETE CASCADE, -- Proyecto asociado
+  created_at TIMESTAMP DEFAULT NOW(),       -- Fecha de creación
+  updated_at TIMESTAMP DEFAULT NOW()        -- Fecha de última actualización
 );
 
-
--- Tabla intermedia Usuarios_Tareas (relación N:M)
+-- ============================================
+-- TABLA intermedia usuarios_tareas (N:M)
+-- ============================================
+-- Relaciona usuarios con tareas (un usuario puede tener muchas tareas y viceversa)
 CREATE TABLE IF NOT EXISTS usuarios_tareas (
-  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
-  tarea_id INTEGER REFERENCES tareas(id) ON DELETE CASCADE,
-  PRIMARY KEY(usuario_id, tarea_id)
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE, -- Usuario asociado
+  tarea_id INTEGER REFERENCES tareas(id) ON DELETE CASCADE,    -- Tarea asociada
+  PRIMARY KEY(usuario_id, tarea_id)                             -- Clave primaria compuesta
 );
 
 -- ============================================
--- Triggers para actualizar updated_at automáticamente
+-- TRIGGERS updated_at para otras tablas
 -- ============================================
-
 -- Usuarios
 CREATE TRIGGER update_usuarios_updated_at 
 BEFORE UPDATE ON usuarios
@@ -93,32 +106,56 @@ CREATE TRIGGER update_tareas_updated_at
 BEFORE UPDATE ON tareas
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Usuarios_Tareas no necesita trigger porque es solo relación
+-- Usuarios_Tareas no necesita trigger porque solo almacena relaciones
 
 -- ============================================
--- DATOS DE EJEMPLO (OPCIONAL)
+-- Trigger para crear automáticamente api_key al insertar un usuario
 -- ============================================
+-- Función que genera la api_key al insertar un usuario
+CREATE OR REPLACE FUNCTION crear_api_key_usuario()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Inserta una fila en api_keys usando los datos del nuevo usuario
+    INSERT INTO api_keys (api_key, client_name, email, role)
+    VALUES (
+        gen_random_uuid(),   -- Genera un UUID para la api_key
+        NEW.nombre,          -- Usa el nombre del usuario como client_name
+        NEW.email,           -- Usa el email del usuario
+        'user'               -- Rol por defecto
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- Insertar un administrador de ejemplo para pruebas (opcional)
--- Descomenta las siguientes líneas para crear un admin de prueba
+-- Trigger que ejecuta la funcion despues de insertar un usuario
+CREATE TRIGGER trigger_crear_api_key
+AFTER INSERT ON usuarios
+FOR EACH ROW
+EXECUTE FUNCTION crear_api_key_usuario();
+
+-- ============================================
+-- DATOS DE EJEMPLO
+-- ============================================
+-- Insertar admin de prueba (opcional)
 INSERT INTO api_keys (api_key, client_name, email, role) 
 VALUES (
-   gen_random_uuid(), 
-   'Admin', 
-   'admin@example.com',
-   'admin'
- );
+   gen_random_uuid(), -- Genera UUID
+   'Admin',           -- Nombre cliente
+   'admin@example.com', -- Email
+   'admin'            -- Rol admin
+);
 
--- Insertar un usuario normal de ejemplo (opcional)
- INSERT INTO api_keys (api_key, client_name, email, role) 
- VALUES (
-   gen_random_uuid(), 
-   'Usuario de Prueba', 
+-- Insertar usuario normal de prueba (opcional)
+INSERT INTO api_keys (api_key, client_name, email, role) 
+VALUES (
+   gen_random_uuid(),
+   'Usuario de Prueba',
    'user@example.com',
    'user'
- );
+);
 
--- Datos de ejemplo para usuarios
+
+-- Insertar usuarios de ejemplo
 INSERT INTO usuarios (nombre, email, password) VALUES
 ('Alice', 'alice@example.com', 'password1'),
 ('Bob', 'bob@example.com', 'password2'),
@@ -131,7 +168,7 @@ INSERT INTO usuarios (nombre, email, password) VALUES
 ('Isabel', 'isabel@example.com', 'password9'),
 ('Juan', 'juan@example.com', 'password10');
 
--- Datos de ejemplo para proyectos
+-- Insertar proyectos de ejemplo
 INSERT INTO proyectos (nombre, descripcion) VALUES
 ('Proyecto A', 'Descripción proyecto A'),
 ('Proyecto B', 'Descripción proyecto B'),
@@ -144,7 +181,7 @@ INSERT INTO proyectos (nombre, descripcion) VALUES
 ('Proyecto I', 'Descripción proyecto I'),
 ('Proyecto J', 'Descripción proyecto J');
 
--- Datos de ejemplo para tareas
+-- Insertar tareas de ejemplo
 INSERT INTO tareas (titulo, descripcion, estado, proyecto_id) VALUES
 ('Tarea 1', 'Descripción Tarea 1', 'pendiente', 1),
 ('Tarea 2', 'Descripción Tarea 2', 'pendiente', 1),
@@ -157,9 +194,10 @@ INSERT INTO tareas (titulo, descripcion, estado, proyecto_id) VALUES
 ('Tarea 9', 'Descripción Tarea 9', 'pendiente', 5),
 ('Tarea 10', 'Descripción Tarea 10', 'pendiente', 5);
 
--- Datos de ejemplo para usuarios_tareas
+-- Insertar relaciones usuarios_tareas de ejemplo
 INSERT INTO usuarios_tareas (usuario_id, tarea_id) VALUES
 (1,1),(1,2),(2,3),(2,4),(3,5),
 (3,6),(4,7),(4,8),(5,9),(5,10),
 (6,1),(6,3),(7,2),(7,4),(8,5),
 (8,7),(9,6),(9,8),(10,9),(10,10);
+
