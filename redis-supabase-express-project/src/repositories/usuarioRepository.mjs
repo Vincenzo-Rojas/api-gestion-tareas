@@ -1,92 +1,108 @@
-// Importamos la conexión a la base de datos (Supabase):
+// Importamos la conexión a la base de datos Supabase
 import { supabase } from '../config/database.mjs';
-// Importos el modelo Usuario:
+// Importamos el modelo Usuario y Tarea
 import { Usuario } from '../models/Usuario.mjs';
+import { Tarea } from '../models/Tarea.mjs';
 
-// Exportamos el repositorio para manejar las operaciones en ba base de datos:
 export class UsuarioRepository {
 
-
-    // Obtenemos el usuario por ID:
+    // Obtener usuario por ID, incluyendo su API Key
     async findById(id) {
         const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .select('*') // Seleccionamos todos los datos
-            .eq('id', id) // Filtramos por ID.
-            .single(); // Devolvemos como objeto unico al ser solo una fila.
+            .from('usuarios')
+            .select(`
+                *,
+                api_keys(*)
+            `)
+            .eq('id', id)
+            .single();
 
         if (error) return null;
-        // Devuelvemos el objeto usuario.
         return new Usuario(data);
     }
 
-    
-    // Obtenemos todos los usuarios:
+    // Obtener usuario por email, incluyendo API Key
+    async findByEmail(email) {
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select(`
+                *,
+                api_keys(*)
+            `)
+            .eq('email', email)
+            .single();
+
+        if (error) return null;
+        return new Usuario(data);
+    }
+
+    // Obtener todos los usuarios
     async getAll() {
         const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .select('*');     // Seleccionamos todos los registros
+            .from('usuarios')
+            .select(`
+                *,
+                api_keys(*)
+            `);
 
         if (error) throw error;
-        // Convertimos cada registro en una instancia del modelo Usuario
         return data.map(usuario => new Usuario(usuario));
     }
 
-
-    // Buscamos un usuario por email:
-    async findByEmail(email) {
-        const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .select('*') // Seleccionamos todos los datos
-            .eq('email', email) // Filtramos por EMAIL.
-            .single();
-
-        if (error) return null;
-        // Devolvemos el objeto usuario.
-        return new Usuario(data);
-    }
-    
-
-    // Creamos un usuario:
+    // Crear usuario (la API Key se genera automáticamente por trigger)
     async create(usuarioData) {
         const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .insert([usuarioData]) // Insertamos los datos.
-            .select()
+            .from('usuarios')
+            .insert([usuarioData])
+            .select(`
+                *,
+                api_keys(*)
+            `)
             .single();
 
         if (error) throw error;
-        // Devolvemos el objeto usuario.
         return new Usuario(data);
     }
 
-
-    // Actualizamos un usuario por ID:
+    // Actualizar usuario por ID
     async update(id, updateData) {
         const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .update(updateData) // Aplicamos cambios.
-            .eq('id', id) // Filtrar por ID usuario.
-            .select()
+            .from('usuarios')
+            .update(updateData)
+            .eq('id', id)
+            .select(`
+                *,
+                api_keys(*)
+            `)
             .single();
-    
+
         if (error) throw error;
-        // Devuelve un objeto Tarea
         return new Usuario(data);
     }
 
-
-    // Eliminamos un usuario:
+    // Eliminar (deshabilitar) usuario por ID
     async disable(id) {
         const { data, error } = await supabase
-            .from('usuarios') // Tabla usuarios
-            .delete() // ELIMINAMOS el registro
-            .eq('id', id) // Filtramos por ID.
+            .from('usuarios')
+            .delete()
+            .eq('id', id)
             .select()
             .single();
-            
-        if (error) throw error;
 
+        if (error) throw error;
         return data ? new Usuario(data) : null;
+    }
+
+    // Obtener tareas asignadas a un usuario (N:M)
+    async getTareas(usuarioId) {
+        const { data, error } = await supabase
+            .from('usuarios_tareas')
+            .select(`
+                tareas(*)
+            `)
+            .eq('usuario_id', usuarioId);
+
+        if (error) throw error;
+        return data.map(row => new Tarea(row.tareas));
     }
 }
