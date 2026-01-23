@@ -60,27 +60,13 @@ export class EstadisticasController {
 
       const jsonData = JSON.stringify(data);
 
-      // Opción 1: Intentar con setEx (E mayúscula - versión nueva)
       if (typeof redis.setEx === 'function') {
         await redis.setEx(key, ttl, jsonData);
         console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando setEx`);
         return;
       }
 
-      // Opción 2: Intentar con setex (x minúscula - versión antigua)
-      if (typeof redis.setex === 'function') {
-        await redis.setex(key, ttl, jsonData);
-        console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando setex`);
-        return;
-      }
-
-      // Opción 3: Usar set + expire por separado
-      if (typeof redis.set === 'function' && typeof redis.expire === 'function') {
-        await redis.set(key, jsonData);
-        await redis.expire(key, ttl);
-        console.log(`[CACHE SET] Guardado en cache: ${key} (TTL: ${ttl}s) usando set+expire`);
-        return;
-      }
+     
 
       // Si nada funciona
       console.error(`[CACHE ERROR] No se pudo guardar en cache: ${key}`);

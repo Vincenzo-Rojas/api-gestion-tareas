@@ -135,9 +135,9 @@ export class UsuarioController {
         try {
             // Llamada al metodo (disable).
             await this.repository.disable(req.params.id);
-            res.json({ message: "El usuario ha sido deshabilitado." });
+            res.json({ message: "El usuario ha sido eliminado." });
         } catch (error) {
-            res.status(500).json({ error: "ERROR: No se ha podido deshabilitar al usuario", message: error.message });
+            res.status(500).json({ error: "ERROR: No se ha podido eliminar al usuario", message: error.message });
         }
     };
 }
