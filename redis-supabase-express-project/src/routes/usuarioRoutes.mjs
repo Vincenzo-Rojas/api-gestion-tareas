@@ -7,38 +7,10 @@ import { apiKeyMiddleware } from '../middlewares/apiKeyMiddleware.mjs';
 import { adminMiddleware } from '../middlewares/adminMiddleware.mjs';
 
 // Router permite agrupar rutas relacionadas y exportarlas como un modulo.
-// Esta ruta podra ser utilizada desde otro modulo
 const router = express.Router();
 
 // Creamos una instancia del controlador de Usuario
-// Asi se puede acceder a los metodos definidos en UsuarioController
 const controller = new UsuarioController();
-
-// ============================================
-// RUTAS PROTEGIDAS (requieren API Key)
-// ============================================
-
-// Ruta para obtener un usuario por ID (GET /api/usuarios/:id)
-// apiKeyMiddleware: Validamos que la peticion tenga una ruta valida.
-router.get('/:id', apiKeyMiddleware, controller.getById);
-
-// Ruta para obtener un usuario por Email (GET /api/usuarios/email/:email)
-router.get('/email/:email', apiKeyMiddleware, controller.getByEmail);
-
-// ============================================
-// RUTAS ADMINISTRATIVAS (requieren rol admin)
-// ============================================
-
-// Ruta para crear un nuevo usuario (POST /api/usuarios)
-// adminMiddleware: Validamos que el usuario tenga el rol de admin
-router.post('/', adminMiddleware, controller.create);
-
-// Ruta para actualizar un usuario por ID (PUT /api/usuarios/:id)
-router.put('/:id', adminMiddleware, controller.update);
-
-// Ruta para deshabilitar un usuario por ID (DELETE /api/usuarios/:id)
-// Usamos el metodo disable() internamente en el controlador.
-router.delete('/:id', adminMiddleware, controller.disable);
 
 // ============================================
 // RUTAS PÚBLICAS
@@ -49,5 +21,31 @@ router.delete('/:id', adminMiddleware, controller.disable);
  * Registra un nuevo cliente y genera una API Key
  */
 router.post('/register', controller.register);
+
+// ============================================
+// RUTAS PROTEGIDAS (requieren API Key)
+// ============================================
+
+// Obtener todos los usuarios (GET /api/usuarios)
+router.get('/', apiKeyMiddleware, controller.getAll);
+
+// Obtener un usuario por email (GET /api/usuarios/email/:email)
+router.get('/email/:email', apiKeyMiddleware, controller.getByEmail);
+
+// Obtener un usuario por ID (GET /api/usuarios/:id)
+router.get('/:id', apiKeyMiddleware, controller.getById);
+
+// ============================================
+// RUTAS ADMINISTRATIVAS (requieren rol admin)
+// ============================================
+
+// Crear un nuevo usuario (POST /api/usuarios)
+router.post('/', adminMiddleware, controller.create);
+
+// Actualizar un usuario por ID (PUT /api/usuarios/:id)
+router.put('/:id', adminMiddleware, controller.update);
+
+// Deshabilitar un usuario por ID (DELETE /api/usuarios/:id)
+router.delete('/:id', adminMiddleware, controller.disable);
 
 export default router;
