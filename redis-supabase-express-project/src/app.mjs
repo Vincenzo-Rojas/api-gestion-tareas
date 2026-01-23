@@ -65,7 +65,7 @@ app.listen(PORT, () => {
   // =========================
   console.log(`\nPublicos:`);
   console.log(`   POST http://localhost:${PORT}/api/register`);
-  console.log(`   curl -X POST http://localhost:${PORT}/api/register -H "Content-Type: application/json" -d "{\\"nombre\\":\\"Juan\\",\\"email\\":\\"juan@example.com\\"}"`);
+  console.log(`curl -X POST http://localhost:${PORT}/api/usuarios/register -H "Content-Type: application/json" -d '{"nombre":"Juan","email":"juan@example.com","password":"123456"}'`);
   console.log(`   -> Crea un usuario normal y genera automaticamente su API Key`);
 
   // =========================

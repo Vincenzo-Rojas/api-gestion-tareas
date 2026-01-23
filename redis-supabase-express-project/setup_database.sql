@@ -133,11 +133,26 @@ WHERE usuario_id = 1;
 
 INSERT INTO proyectos (nombre, descripcion) VALUES
 ('Proyecto A', 'Descripción proyecto A'),
-('Proyecto B', 'Descripción proyecto B');
+('Proyecto B', 'Descripción proyecto B'),
+('Aplicación Móvil Ventas', 'Desarrollo de una app móvil para gestionar ventas'),
+('Migración Base de Datos', 'Migrar la base de datos a PostgreSQL 15'),
+('Campaña Marketing Enero', 'Planificación y ejecución de la campaña de marketing de enero'),
+('Rediseño Web Corporativa', 'Actualizar la web corporativa con nuevo diseño y SEO'),
+('Automatización Facturación', 'Implementar sistema de facturación automática');
 
 INSERT INTO tareas (titulo, descripcion, estado, proyecto_id) VALUES
 ('Tarea 1', 'Descripción Tarea 1', 'pendiente', 1),
-('Tarea 2', 'Descripción Tarea 2', 'pendiente', 2);
+('Tarea 2', 'Descripción Tarea 2', 'pendiente', 2),
+('Diseñar interfaz usuario', 'Crear wireframes y mockups para la app móvil', 'pendiente', 1),
+('Desarrollar API REST', 'Implementar endpoints para el app móvil', 'en progreso', 1),
+('Test migración de datos', 'Probar integridad y consistencia de la base de datos', 'pendiente', 2),
+('Actualizar scripts SQL', 'Optimizar consultas y triggers para la nueva DB', 'en progreso', 2),
+('Crear contenido campaña', 'Redactar emails y posts para la campaña de marketing', 'completada', 3),
+('Programar envíos automáticos', 'Configurar herramientas para envíos masivos', 'pendiente', 3),
+('Maquetar nueva web', 'Implementar HTML, CSS y JS siguiendo nuevo diseño', 'en progreso', 4),
+('Optimizar SEO', 'Mejorar posicionamiento en buscadores', 'pendiente', 4),
+('Integrar sistema de pagos', 'Conectar la facturación con la pasarela de pagos', 'cancelada', 5),
+('Generar reportes automáticos', 'Automatizar reportes semanales de facturación', 'en progreso', 5);
 
 INSERT INTO usuarios_tareas (usuario_id, tarea_id) VALUES
 (2, 1),

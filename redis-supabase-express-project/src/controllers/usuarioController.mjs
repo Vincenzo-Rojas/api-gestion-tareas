@@ -1,46 +1,33 @@
-// Importamos el repositorio Usuario Repositorio, tiene la conexion directa con Supabase.
-// Controladores que manejan las peticiones HTTP
 import { UsuarioRepository } from '../repositories/usuarioRepository.mjs';
 
-// / Exportamos la clase para que pueda ser importada en ROUTES
 export class UsuarioController {
-    // Creamos una instancia del repositorio para que el controlador pueda obtener loa datos a la base de datos.
     constructor() {
         this.repository = new UsuarioRepository();
     }
 
-     /**
-     * POST /api/register
-     * Registra un nuevo usuario normal.
-     * La API Key se genera automáticamente mediante el trigger de la base de datos.
-     */
+    // Registro de usuario normal (API Key generada por trigger)
     register = async (req, res) => {
         try {
-            const { client_name, email } = req.body;
+            const { nombre, email, password } = req.body;
 
-            // Validación mínima
-            if (!client_name || !email) {
+            if (!nombre || !email || !password) {
                 return res.status(400).json({
-                    error: 'Faltan campos obligatorios: client_name y email'
+                    error: 'Faltan campos obligatorios: nombre, email, password'
                 });
             }
 
-            // Creamos el usuario con rol 'user' (normal)
-            const nuevoUsuario = await this.repository.create({
-                client_name,
-                email,
-                role: 'user' // forzamos rol normal
-            });
+            // Crear usuario
+            const nuevoUsuario = await this.repository.create({ nombre, email, password });
 
-            // Devolvemos info, incluyendo la API Key generada por el trigger
+            // Obtener la API Key generada por el trigger
+            const apiKey = await this.repository.getApiKeyByUserId(nuevoUsuario.id);
+
+            // Devolver datos de usuario + API Key
             res.status(201).json({
-                message: 'Usuario registrado exitosamente. La API Key se genera automáticamente.',
+                message: 'Usuario registrado exitosamente.',
                 data: {
-                    client_name: nuevoUsuario.client_name,
-                    email: nuevoUsuario.email,
-                    role: nuevoUsuario.role,
-                    api_key: nuevoUsuario.api_key, // viene del trigger
-                    created_at: nuevoUsuario.created_at
+                    ...nuevoUsuario.toPublic(),
+                    api_key: apiKey // añadimos la API Key aquí
                 },
                 info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
             });
@@ -52,112 +39,71 @@ export class UsuarioController {
         }
     };
 
-    // PETICION GET con metodo usuarioRepository.findById()
+
+    // Obtener usuario por ID
     getById = async (req, res) => {
-         try {
-            // Llamamos al metodo (findById) del repositorio para traer al usuario.
+        try {
             const usuario = await this.repository.findById(req.params.id);
-            
-            if(!usuario){
-                return res.status(404).json({error: "ERROR: Usuario no encontrado."});
-            }
-            // Respondemos con los datos del usuario transformados a JSON
-            res.json({data: usuario.toJSON()});
+            if (!usuario) return res.status(404).json({ error: "Usuario no encontrado." });
+
+            res.json({ data: usuario.toPublic() }); // solo datos de usuarios
         } catch (error) {
-            res.status(500).json({ error: "ERROR: No se ha podido encontrar al usuario", message: error.message });
+            res.status(500).json({ error: "No se pudo obtener el usuario", message: error.message });
         }
     };
 
-
-    // PETICION GET con metodo usuarioRepository.findByEmail()
+    // Obtener usuario por email
     getByEmail = async (req, res) => {
         try {
-            // Llamamos al metodo (findByEmail) del repositorio usando el email que viene en la URL.
-            // req.params.email: Captura el correo de la ruta (ej: /usuarios/email/email@email.com)
             const usuario = await this.repository.findByEmail(req.params.email);
+            if (!usuario) return res.status(404).json({ error: "Usuario no encontrado con ese email." });
 
-            if (!usuario) {
-                return res.status(404).json({ error: "ERROR: Usuario no encontrado con ese email." });
-            }
-
-            // Respondemos con los datos del usuario transformados a JSON
-            res.json({ data: usuario.toJSON() });
+            res.json({ data: usuario.toPublic() });
         } catch (error) {
-            res.status(500).json({ 
-                error: "ERROR: No se ha podido realizar la búsqueda por email", 
-                message: error.message 
-            });
+            res.status(500).json({ error: "Error buscando usuario por email", message: error.message });
         }
     };
 
-    
-    // PETICION POST con metodo create(req.body)
-    create = async (req, res) => {
-        try {
-            // Enviamos el cuerpo de la petición (nombre, email, password) al repositorio para insertarlo.
-            const nuevo = await this.repository.create(req.body);
-
-            // Si la inserción es exitosa, devolvemos cod: 201 (Created).
-            res.status(201).json({ 
-                data: nuevo.toJSON(), 
-                message: "Se ha creado el usuario." 
-            });
-        } catch (error) {
-            // Si existe un error:
-            res.status(400).json({ 
-                error: "ERROR: No se ha podido crear el usuario", 
-                message: error.message 
-            });
-        }
-    };
-
-
-    // PETICION PUT con metodo update(id)
-    update = async (req, res) => {
-        try {
-            // Llamada al metodo (update) del repositorio.
-            // req: Petición HTTP que llega al servidor.
-            // params: Valores que contiene la URL.
-            // id: id del usuario al que se llama. 
-            const actualizado = await this.repository.update(req.params.id, req.body);
-            res.json({ 
-                data: actualizado.toJSON(),
-                message: "Usuario actualizado correctamente" 
-            });
-        } catch (error) {
-            res.status(400).json({ error: "ERROR: No se ha podido actualizar", message: error.message });
-        }
-    };
-
-
-    // PETICION GET con metodo usuarioRepository.getAll()
+    // Obtener todos los usuarios
     getAll = async (req, res) => {
         try {
-            // Llamamos al metodo getAll del repositorio
             const usuarios = await this.repository.getAll();
-
-            // Respondemos con la lista de usuarios transformados a JSON
             res.json({
                 total: usuarios.length,
-                data: usuarios.map(usuario => usuario.toJSON())
+                data: usuarios.map(u => u.toPublic()) // solo datos de usuarios
             });
         } catch (error) {
-            res.status(500).json({
-                error: 'ERROR: No se han podido obtener los usuarios',
-                message: error.message
-            });
+            res.status(500).json({ error: "No se pudieron obtener los usuarios", message: error.message });
         }
     };
 
+    // Actualizar usuario
+    update = async (req, res) => {
+        try {
+            const actualizado = await this.repository.update(req.params.id, req.body);
+            res.json({ data: actualizado.toPublic(), message: "Usuario actualizado correctamente" });
+        } catch (error) {
+            res.status(400).json({ error: "No se pudo actualizar usuario", message: error.message });
+        }
+    };
 
-    // PETICION DELETE con metodo delete(id)
+    // Eliminar / deshabilitar usuario
     disable = async (req, res) => {
         try {
-            // Llamada al metodo (disable).
             await this.repository.disable(req.params.id);
-            res.json({ message: "El usuario ha sido eliminado." });
+            res.json({ message: "Usuario eliminado correctamente" });
         } catch (error) {
-            res.status(500).json({ error: "ERROR: No se ha podido eliminar al usuario", message: error.message });
+            res.status(500).json({ error: "No se pudo eliminar usuario", message: error.message });
+        }
+    };
+
+    // Obtener tareas asignadas a un usuario
+    getTareasUsuario = async (req, res) => {
+        try {
+            const tareas = await this.repository.getTareas(req.params.id);
+            res.json({ total: tareas.length, data: tareas.map(t => t.toJSON()) });
+        } catch (error) {
+            res.status(500).json({ error: "No se pudieron obtener las tareas del usuario", message: error.message });
         }
     };
 }
