@@ -19,8 +19,7 @@ export class UsuarioController {
             const nuevoUsuario = await this.repository.create({
                 nombre,
                 email,
-                password,
-                role: 'user'
+                password
             });
 
             res.status(201).json({
@@ -107,3 +106,4 @@ export class UsuarioController {
         }
     };
 }
+
