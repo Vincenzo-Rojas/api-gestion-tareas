@@ -49,20 +49,31 @@ export class UsuarioRepository {
         return data.map(usuario => new Usuario(usuario));
     }
 
-    // Crear usuario (la API Key se genera automáticamente por trigger)
-    async create(usuarioData) {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .insert([usuarioData])
-            .select(`
-                *,
-                api_keys(*)
-            `)
-            .single();
+    // Crear usuario y traer API Key generada por trigger
+async create(usuarioData) {
+    // Insertar el usuario
+    const { data: usuario, error } = await supabase
+        .from('usuarios')
+        .insert([usuarioData])
+        .select('*')
+        .single();
+    if (error) throw error;
 
-        if (error) throw error;
-        return new Usuario(data);
-    }
+    // Traer la API Key creada por el trigger
+    const { data: apiKeyData, error: keyError } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('usuario_id', usuario.id)
+        .single();
+    if (keyError) throw keyError;
+
+    // Combinar datos y devolver
+    return new Usuario({
+        ...usuario,
+        api_key: apiKeyData.api_key
+    });
+}
+
 
     // Actualizar usuario por ID
     async update(id, updateData) {
@@ -106,3 +117,4 @@ export class UsuarioRepository {
         return data.map(row => new Tarea(row.tareas));
     }
 }
+
