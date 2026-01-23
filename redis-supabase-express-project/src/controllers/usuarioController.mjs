@@ -10,7 +10,7 @@ export class UsuarioController {
     }
 
      /**
-     * POST /api/register
+     * POST /api/usuarios/register
      * Registra un nuevo usuario normal.
      * La API Key se genera automáticamente mediante el trigger de la base de datos.
      */
@@ -160,4 +160,5 @@ export class UsuarioController {
             res.status(500).json({ error: "ERROR: No se ha podido eliminar al usuario", message: error.message });
         }
     };
+
 }
