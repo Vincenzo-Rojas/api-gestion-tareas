@@ -17,7 +17,7 @@ const controller = new UsuarioController();
 // ============================================
 
 /**
- * POST /api/register
+ * POST /api/usuarios/register
  * Registra un nuevo cliente y genera una API Key
  */
 router.post('/register', controller.register);
@@ -47,5 +47,6 @@ router.put('/:id', adminMiddleware, controller.update);
 
 // Deshabilitar un usuario por ID (DELETE /api/usuarios/:id)
 router.delete('/:id', adminMiddleware, controller.disable);
+
 
 export default router;
