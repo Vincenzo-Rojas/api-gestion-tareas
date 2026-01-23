@@ -1,4 +1,4 @@
-import { UsuarioRepository } from '../repositories/UsuarioRepository.mjs';
+import { UsuarioRepository } from '../repositories/usuarioRepository.mjs';
 
 export class UsuarioController {
     constructor() {
