@@ -6,38 +6,38 @@ export class UsuarioController {
     }
 
     // Registro de usuario normal (API Key generada por trigger)
-register = async (req, res) => {
-    try {
-        const { nombre, email, password } = req.body;
+    register = async (req, res) => {
+        try {
+            const { nombre, email, password } = req.body;
 
-        if (!nombre || !email || !password) {
-            return res.status(400).json({
-                error: 'Faltan campos obligatorios: nombre, email, password'
+            if (!nombre || !email || !password) {
+                return res.status(400).json({
+                    error: 'Faltan campos obligatorios: nombre, email, password'
+                });
+            }
+
+            // Crear usuario
+            const nuevoUsuario = await this.repository.create({ nombre, email, password });
+
+            // Obtener la API Key generada por el trigger
+            const apiKey = await this.repository.getApiKeyByUserId(nuevoUsuario.id);
+
+            // Devolver datos de usuario + API Key
+            res.status(201).json({
+                message: 'Usuario registrado exitosamente.',
+                data: {
+                    ...nuevoUsuario.toPublic(),
+                    api_key: apiKey // añadimos la API Key aquí
+                },
+                info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
+            });
+        } catch (error) {
+            console.error('Error en register:', error);
+            res.status(400).json({
+                error: error.message || 'Error al registrar usuario'
             });
         }
-
-        // Crear usuario
-        const nuevoUsuario = await this.repository.create({ nombre, email, password });
-
-        // Obtener la API Key generada por el trigger
-        const apiKey = await this.repository.getApiKeyByUserId(nuevoUsuario.id);
-
-        // Devolver datos de usuario + API Key
-        res.status(201).json({
-            message: 'Usuario registrado exitosamente.',
-            data: {
-                ...nuevoUsuario.toPublic(),
-                api_key: apiKey // añadimos la API Key aquí
-            },
-            info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
-        });
-    } catch (error) {
-        console.error('Error en register:', error);
-        res.status(400).json({
-            error: error.message || 'Error al registrar usuario'
-        });
-    }
-};
+    };
 
 
     // Obtener usuario por ID
