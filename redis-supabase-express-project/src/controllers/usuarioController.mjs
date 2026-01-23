@@ -22,7 +22,7 @@ export class UsuarioController {
             // Solo devolver datos de la tabla usuarios
             res.status(201).json({
                 message: 'Usuario registrado exitosamente.',
-                data: nuevoUsuario.toPublic() // excluye password si quieres, o usa toJSON si quieres incluirlo
+                data: nuevoUsuario.toPublic() 
             });
         } catch (error) {
             console.error('Error en register:', error);

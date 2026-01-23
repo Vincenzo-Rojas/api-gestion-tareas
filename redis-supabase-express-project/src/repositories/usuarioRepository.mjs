@@ -89,4 +89,17 @@ export class UsuarioRepository {
         if (error) throw error;
         return data.map(row => new Tarea(row.tareas));
     }
+
+    //Obtener API Key de un usuario por su ID
+    async getApiKeyByUserId(usuarioId) {
+        const { data, error } = await supabase
+            .from('api_keys')
+            .select('*')
+            .eq('usuario_id', usuarioId)
+            .single(); // 1:1 relación
+
+        if (error || !data) return null;
+
+        return data.api_key; // devuelve solo el string de la API Key
+    }
 }
