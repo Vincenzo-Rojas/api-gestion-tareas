@@ -37,7 +37,7 @@ router.get('/:id', apiKeyMiddleware, controller.getById);
 // ============================================
 
 // Crear un nuevo usuario
-router.post('/', adminMiddleware, controller.create);
+router.post('/', adminMiddleware, controller.register);
 
 // Actualizar un usuario por ID
 router.put('/:id', adminMiddleware, controller.update);
@@ -46,4 +46,5 @@ router.put('/:id', adminMiddleware, controller.update);
 router.delete('/:id', adminMiddleware, controller.disable);
 
 export default router;
+
 
