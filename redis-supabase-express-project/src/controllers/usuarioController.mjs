@@ -16,22 +16,13 @@ export class UsuarioController {
                 });
             }
 
-            const nuevoUsuario = await this.repository.create({
-                nombre,
-                email,
-                password
-            });
+            // Crear usuario
+            const nuevoUsuario = await this.repository.create({ nombre, email, password });
 
+            // Solo devolver datos de la tabla usuarios
             res.status(201).json({
-                message: 'Usuario registrado exitosamente. La API Key se genera automáticamente.',
-                data: {
-                    nombre: nuevoUsuario.nombre,
-                    email: nuevoUsuario.email,
-                    role: nuevoUsuario.role,
-                    api_key: nuevoUsuario.api_key, // viene del trigger
-                    created_at: nuevoUsuario.created_at
-                },
-                info: 'Usa esta API Key en el header X-API-Key para autenticar tus peticiones'
+                message: 'Usuario registrado exitosamente.',
+                data: nuevoUsuario.toPublic() // excluye password si quieres, o usa toJSON si quieres incluirlo
             });
         } catch (error) {
             console.error('Error en register:', error);
@@ -46,7 +37,8 @@ export class UsuarioController {
         try {
             const usuario = await this.repository.findById(req.params.id);
             if (!usuario) return res.status(404).json({ error: "Usuario no encontrado." });
-            res.json({ data: usuario.toJSON() });
+
+            res.json({ data: usuario.toPublic() }); // solo datos de usuarios
         } catch (error) {
             res.status(500).json({ error: "No se pudo obtener el usuario", message: error.message });
         }
@@ -57,7 +49,8 @@ export class UsuarioController {
         try {
             const usuario = await this.repository.findByEmail(req.params.email);
             if (!usuario) return res.status(404).json({ error: "Usuario no encontrado con ese email." });
-            res.json({ data: usuario.toJSON() });
+
+            res.json({ data: usuario.toPublic() });
         } catch (error) {
             res.status(500).json({ error: "Error buscando usuario por email", message: error.message });
         }
@@ -69,7 +62,7 @@ export class UsuarioController {
             const usuarios = await this.repository.getAll();
             res.json({
                 total: usuarios.length,
-                data: usuarios.map(u => u.toJSON())
+                data: usuarios.map(u => u.toPublic()) // solo datos de usuarios
             });
         } catch (error) {
             res.status(500).json({ error: "No se pudieron obtener los usuarios", message: error.message });
@@ -80,7 +73,7 @@ export class UsuarioController {
     update = async (req, res) => {
         try {
             const actualizado = await this.repository.update(req.params.id, req.body);
-            res.json({ data: actualizado.toJSON(), message: "Usuario actualizado correctamente" });
+            res.json({ data: actualizado.toPublic(), message: "Usuario actualizado correctamente" });
         } catch (error) {
             res.status(400).json({ error: "No se pudo actualizar usuario", message: error.message });
         }
@@ -106,4 +99,3 @@ export class UsuarioController {
         }
     };
 }
-
