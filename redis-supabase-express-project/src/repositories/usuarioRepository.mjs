@@ -6,33 +6,27 @@ import { Tarea } from '../models/Tarea.mjs';
 
 export class UsuarioRepository {
 
-    // Obtener usuario por ID, incluyendo su API Key
+    // Obtener usuario por ID
     async findById(id) {
         const { data, error } = await supabase
             .from('usuarios')
-            .select(`
-                *,
-                api_keys(*)
-            `)
+            .select('*')
             .eq('id', id)
             .single();
 
-        if (error) return null;
+        if (error || !data) return null;
         return new Usuario(data);
     }
 
-    // Obtener usuario por email, incluyendo API Key
+    // Obtener usuario por email
     async findByEmail(email) {
         const { data, error } = await supabase
             .from('usuarios')
-            .select(`
-                *,
-                api_keys(*)
-            `)
+            .select('*')
             .eq('email', email)
             .single();
 
-        if (error) return null;
+        if (error || !data) return null;
         return new Usuario(data);
     }
 
@@ -40,40 +34,24 @@ export class UsuarioRepository {
     async getAll() {
         const { data, error } = await supabase
             .from('usuarios')
-            .select(`
-                *,
-                api_keys(*)
-            `);
+            .select('*');
 
         if (error) throw error;
         return data.map(usuario => new Usuario(usuario));
     }
 
-    // Crear usuario y traer API Key generada por trigger
-async create(usuarioData) {
-    // Insertar el usuario
-    const { data: usuario, error } = await supabase
-        .from('usuarios')
-        .insert([usuarioData])
-        .select('*')
-        .single();
-    if (error) throw error;
+    // Crear usuario
+    async create(usuarioData) {
+        const { data: usuario, error } = await supabase
+            .from('usuarios')
+            .insert([usuarioData])
+            .select('*')
+            .single();
 
-    // Traer la API Key creada por el trigger
-    const { data: apiKeyData, error: keyError } = await supabase
-        .from('api_keys')
-        .select('*')
-        .eq('usuario_id', usuario.id)
-        .single();
-    if (keyError) throw keyError;
+        if (error) throw error;
 
-    // Combinar datos y devolver
-    return new Usuario({
-        ...usuario,
-        api_key: apiKeyData.api_key
-    });
-}
-
+        return new Usuario(usuario);
+    }
 
     // Actualizar usuario por ID
     async update(id, updateData) {
@@ -81,10 +59,7 @@ async create(usuarioData) {
             .from('usuarios')
             .update(updateData)
             .eq('id', id)
-            .select(`
-                *,
-                api_keys(*)
-            `)
+            .select('*')
             .single();
 
         if (error) throw error;
@@ -108,13 +83,10 @@ async create(usuarioData) {
     async getTareas(usuarioId) {
         const { data, error } = await supabase
             .from('usuarios_tareas')
-            .select(`
-                tareas(*)
-            `)
+            .select('tareas(*)')
             .eq('usuario_id', usuarioId);
 
         if (error) throw error;
         return data.map(row => new Tarea(row.tareas));
     }
 }
-
