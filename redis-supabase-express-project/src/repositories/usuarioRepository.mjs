@@ -20,6 +20,18 @@ export class UsuarioRepository {
         return new Usuario(data);
     }
 
+    
+    // Obtenemos todos los usuarios:
+    async getAll() {
+        const { data, error } = await supabase
+            .from('usuarios') // Tabla usuarios
+            .select('*');     // Seleccionamos todos los registros
+
+        if (error) throw error;
+        // Convertimos cada registro en una instancia del modelo Usuario
+        return data.map(usuario => new Usuario(usuario));
+    }
+
 
     // Buscamos un usuario por email:
     async findByEmail(email) {
@@ -33,7 +45,7 @@ export class UsuarioRepository {
         // Devolvemos el objeto usuario.
         return new Usuario(data);
     }
-
+    
 
     // Creamos un usuario:
     async create(usuarioData) {

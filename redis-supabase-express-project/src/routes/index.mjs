@@ -5,6 +5,7 @@ import apiKeyRoutes from './apiKeyRoutes.mjs';
 import proyectoRoutes from './proyectoRoutes.mjs';
 import usuarioRoutes from './usuarioRoutes.mjs';
 import estadisticasRoutes from './estadisticasRoutes.mjs'; // NUEVA RUTA AGREGADA
+import tareaRoutes from './tareaRoutes.mjs';
 
 const router = express.Router();
 
@@ -21,6 +22,9 @@ router.use('/usuarios', usuarioRoutes);
 
 // Rutas de estadisticas (NUEVO - Parte de Diego)
 router.use('/estadisticas', estadisticasRoutes);
+
+// Rutas de tareas.
+router.use('/tareas', tareaRoutes);
 
 // ============================================
 // RUTA RAIZ - Informacion de la API
@@ -47,6 +51,7 @@ router.get('/', (req, res) => {
         'DELETE /api/proyectos/:id - Eliminar proyecto (admin)'
       ],
       usuarios: [
+        'GET /api/usuarios - Listar todos los usuarios',
         'GET /api/usuarios/:id - Obtener usuario por ID',
         'GET /api/usuarios/email/:email - Obtener usuario por email',
         'POST /api/usuarios - Crear nuevo usuario (admin)',
@@ -59,6 +64,14 @@ router.get('/', (req, res) => {
         'GET /api/estadisticas/generales - Estadisticas generales del sistema (con cache)',
         'GET /api/estadisticas/proyecto/:id/tareas - Tareas de un proyecto por estado (con cache)',
         'DELETE /api/estadisticas/cache - Invalidar cache de estadisticas (admin)'
+      ],
+      tareas: [
+        'GET /api/tareas - Listar todas las tareas',
+        'GET /api/tareas/:id - Obtener tarea por ID',
+        'GET /api/tareas/proyecto/:proyectoId?estado=pendiente - Tareas de un proyecto',
+        'POST /api/tareas - Crear nueva tarea (admin)',
+        'PUT /api/tareas/:id - Actualizar tarea (admin)',
+        'DELETE /api/tareas/:id - Eliminar tarea (admin)'
       ],
       admin: [
         'GET /api/admin/keys - Listar todas las API Keys',
