@@ -6,21 +6,32 @@ import redis from '../config/redis.mjs';
  */
 export const apiKeyMiddleware = async (req, res, next) => {
   const apiKey = req.header('X-API-Key');
-  
+
   if (!apiKey) {
     return res.status(401).json({ error: 'Falta API Key' });
   }
 
-  // Comprobar que la API key existe y está activa en Supabase
-  const { data: key, error } = await supabase
+  // Buscar API Key activa y su usuario asociado
+  const { data, error } = await supabase
     .from('api_keys')
-    .select('*')
+    .select(`
+      id,
+      api_key,
+      role,
+      is_active,
+      usuario_id,
+      usuarios (
+        id,
+        nombre,
+        email
+      )
+    `)
     .eq('api_key', apiKey)
     .eq('is_active', true)
     .single();
 
-  if (error || !key) {
-    return res.status(403).json({ error: 'API Key Inválida' });
+  if (error || !data) {
+    return res.status(403).json({ error: 'API Key inválida' });
   }
 
   // Rate limiting con Redis (ventana de 1 minuto)
@@ -29,6 +40,7 @@ export const apiKeyMiddleware = async (req, res, next) => {
 
   try {
     const count = await redis.incr(redisKey);
+
     if (count === 1) {
       await redis.expire(redisKey, 60);
     }
@@ -41,7 +53,13 @@ export const apiKeyMiddleware = async (req, res, next) => {
     // Continuar sin rate limiting si Redis falla
   }
 
-  // Adjuntar información del cliente a la request
-  req.client = key;
+  // Información normalizada disponible en toda la app
+  req.client = {
+    apiKey: data.api_key,
+    role: data.role,
+    usuarioId: data.usuario_id,
+    usuario: data.usuarios
+  };
+
   next();
 };
