@@ -26,11 +26,11 @@ router.get('/', apiKeyMiddleware, controller.getAll);
 // Obtener un usuario por email
 router.get('/email/:email', apiKeyMiddleware, controller.getByEmail);
 
-// Obtener un usuario por ID
-router.get('/:id', apiKeyMiddleware, controller.getById);
-
 // Obtener tareas asignadas a un usuario
 router.get('/:id/tareas', apiKeyMiddleware, controller.getTareasUsuario);
+
+// Obtener un usuario por ID
+router.get('/:id', apiKeyMiddleware, controller.getById);
 
 // ============================================
 // RUTAS ADMINISTRATIVAS (requieren rol admin)
@@ -46,3 +46,4 @@ router.put('/:id', adminMiddleware, controller.update);
 router.delete('/:id', adminMiddleware, controller.disable);
 
 export default router;
+
